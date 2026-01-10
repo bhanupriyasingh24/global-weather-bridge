@@ -1,0 +1,25 @@
+Project: Global Weather Bridge
+Objective: Build a full-stack application that retrieves live weather data from an external provider via a custom Java backend.
+Pre-work: Connectivity & Data
+Task: Sign up for a free API key at OpenWeatherMap. Verify the API works by hitting the URL in your browser.
+Success Criteria: You can identify the specific JSON path for "temp" and "description" in the raw browser output.
+
+Milestone 1: Java Network Integration
+Task: Create a Java application that programmatically connects to the Weather API. It should handle the HTTP request and capture the response.
+Success Criteria: Running your Java main method prints the full, raw JSON response from the API to the console.
+Milestone 2: JSON Parsing & Logic
+Task: Map the API's JSON fields into a structured Java Object (POJO).
+Success Criteria: The console prints a formatted string: "City: Bengaluru | Temp: 28°C". The code must gracefully handle an "Invalid City" response without throwing an unhandled exception.
+Milestone 3: The Web Interface (Frontend)
+Task: Build a standalone HTML/JS page with a search input. Connect this UI directly to the Weather API using JavaScript fetch.
+Success Criteria: The browser UI updates dynamically with the temperature when the "Search" button is clicked.
+Milestone 4: The Full-Stack Proxy
+Task: Convert your Java application into a Web Server. Re-route your Frontend to call your Java server instead of the external API.
+Success Criteria: The Browser Network Tab shows a request to localhost (your Java app), which successfully returns the data fetched from the external provider.
+
+The "Why" Rule (For your Review)
+When you show your progress, be prepared to answer why instead of just what:
+Why did we use a specific Java library (e.g., Jackson) instead of string manipulation?
+Why does the Frontend hit your Java server instead of calling the API directly? (Hint: Security and Data Transformation).
+Why did you choose a GET request instead of a POST request for this search?
+
