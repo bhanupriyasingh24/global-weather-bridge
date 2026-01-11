@@ -4,3 +4,4 @@ Hello.java
 RockPaperScissors.java
 RockPaperScissorsTest.java
 apache-maven-*
+target/
