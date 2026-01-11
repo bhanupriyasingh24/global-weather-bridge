@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Global Weather Bridge</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 50px auto;
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        input {
+            padding: 12px;
+            width: 70%;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 12px 25px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Global Weather Bridge</h2>
+        <input type="text" id="cityInput" placeholder="Enter city name (e.g. Bengaluru)" />
+        <br>
+        <button onclick="getWeather()">Check Weather</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function getWeather() {
+            const city = document.getElementById("cityInput").value;
+            const resultElement = document.getElementById("result");
+
+            if (!city) {
+                resultElement.innerHTML = "<span class='error'>Please enter a city name.</span>";
+                return;
+            }
+
+            resultElement.innerText = "Loading...";
+
+            // Calling the Local Java Server (WeatherServer.java)
+            fetch(`http://localhost:8080/weather?city=${city}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.cod && data.cod != 200) {
+                        resultElement.innerHTML = "<span class='error'>" + (data.message || "City not found") + "</span>";
+                        return;
+                    }
+
+                    // Extract data from OpenWeatherMap JSON
+                    const temp = data.main.temp;
+                    const desc = data.weather[0].description;
+                    const cityName = data.name;
+
+                    resultElement.innerHTML = `
+                        <div style="font-size: 2em;">${temp}°C</div>
+                        <div>${cityName}</div>
+                        <div style="text-transform: capitalize; color: #666;">${desc}</div>
+                    `;
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    resultElement.innerHTML = "<span class='error'>Failed to connect. Is the Java Server running?</span><br><small>Run ./run_server.sh</small>";
+                });
+        }
+    </script>
+
+</body>
+
+</html>
