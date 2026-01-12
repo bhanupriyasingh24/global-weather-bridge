@@ -21,7 +21,10 @@ public class WeatherServer {
         int port = 8080;
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        // Create a context for the /weather endpoint
+        // Context for the HTML Frontend
+        server.createContext("/", new HtmlHandler());
+
+        // Context for the JSON API
         server.createContext("/weather", new WeatherHandler());
 
         server.setExecutor(null); // creates a default executor
@@ -29,16 +32,111 @@ public class WeatherServer {
         server.start();
     }
 
+    // Serves the full HTML page
+    static class HtmlHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"/".equals(exchange.getRequestURI().getPath())) {
+                exchange.sendResponseHeaders(404, -1);
+                return;
+            }
+
+            // Embedding HTML here to make the app self-contained for easy cloud deployment
+            // Changed fetch URL to relative '/weather?city=' so it works on any domain
+            String htmlResponse = "<!DOCTYPE html>\n" +
+                    "<html>\n" +
+                    "<head>\n" +
+                    "    <title>Global Weather Bridge</title>\n" +
+                    "    <style>\n" +
+                    "        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }\n" +
+                    "        .container { max-width: 400px; margin: 50px auto; text-align: center; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }\n"
+                    +
+                    "        input { padding: 12px; width: 70%; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; }\n"
+                    +
+                    "        button { padding: 12px 25px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; transition: background 0.3s; }\n"
+                    +
+                    "        button:hover { background: #0056b3; }\n" +
+                    "        #result { margin-top: 20px; font-weight: bold; font-size: 1.2em; color: #333; }\n" +
+                    "        .error { color: red; }\n" +
+                    "    </style>\n" +
+                    "</head>\n" +
+                    "<body>\n" +
+                    "\n" +
+                    "    <div class=\"container\">\n" +
+                    "        <h2>Global Weather Bridge</h2>\n" +
+                    "        <input type=\"text\" id=\"cityInput\" placeholder=\"Enter city name (e.g. Bengaluru)\" />\n"
+                    +
+                    "        <br>\n" +
+                    "        <button onclick=\"getWeather()\">Check Weather</button>\n" +
+                    "\n" +
+                    "        <div id=\"result\"></div>\n" +
+                    "    </div>\n" +
+                    "\n" +
+                    "    <script>\n" +
+                    "        function getWeather() {\n" +
+                    "            const city = document.getElementById(\"cityInput\").value;\n" +
+                    "            const resultElement = document.getElementById(\"result\");\n" +
+                    "\n" +
+                    "            if (!city) {\n" +
+                    "                resultElement.innerHTML = \"<span class='error'>Please enter a city name.</span>\";\n"
+                    +
+                    "                return;\n" +
+                    "            }\n" +
+                    "\n" +
+                    "            resultElement.innerText = \"Loading...\";\n" +
+                    "\n" +
+                    "            // Use relative path for cloud compatibility\n" +
+                    "            fetch(`/weather?city=${city}`)\n" +
+                    "                .then(response => {\n" +
+                    "                    if (!response.ok) {\n" +
+                    "                        throw new Error(\"Network response was not ok\");\n" +
+                    "                    }\n" +
+                    "                    return response.json();\n" +
+                    "                })\n" +
+                    "                .then(data => {\n" +
+                    "                    if (data.cod && data.cod != 200) {\n" +
+                    "                        resultElement.innerHTML = \"<span class='error'>\" + (data.message || \"City not found\") + \"</span>\";\n"
+                    +
+                    "                        return;\n" +
+                    "                    }\n" +
+                    "                    \n" +
+                    "                    const temp = data.main.temp;\n" +
+                    "                    const desc = data.weather[0].description;\n" +
+                    "                    const cityName = data.name;\n" +
+                    "                    \n" +
+                    "                    resultElement.innerHTML = `\n" +
+                    "                        <div style=\"font-size: 2em;\">${temp}°C</div>\n" +
+                    "                        <div>${cityName}</div>\n" +
+                    "                        <div style=\"text-transform: capitalize; color: #666;\">${desc}</div>\n" +
+                    "                    `;\n" +
+                    "                })\n" +
+                    "                .catch(error => {\n" +
+                    "                    console.error(\"Error:\", error);\n" +
+                    "                    resultElement.innerHTML = \"<span class='error'>Failed to connect.</span>\";\n"
+                    +
+                    "                });\n" +
+                    "        }\n" +
+                    "    </script>\n" +
+                    "</body>\n" +
+                    "</html>";
+
+            byte[] response = htmlResponse.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", "text/html");
+            // Add a shorter timeout for options
+            exchange.sendResponseHeaders(200, response.length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(response);
+            os.close();
+        }
+    }
+
     static class WeatherHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            // Add CORS Headers to allow ANY website (including your local file) to call
-            // this
             exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
             exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, OPTIONS");
             exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type,Authorization");
 
-            // Handle pre-flight OPTIONS request
             if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
                 exchange.sendResponseHeaders(204, -1);
                 return;
@@ -68,7 +166,7 @@ public class WeatherServer {
                     os.close();
                 }
             } else {
-                exchange.sendResponseHeaders(405, -1); // Method Not Allowed
+                exchange.sendResponseHeaders(405, -1);
             }
         }
     }
