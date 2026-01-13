@@ -17,20 +17,32 @@ public class WeatherServer {
 
     private static final String API_KEY = "069a0eb757c030eccb5e9fe27fa8b8fd";
 
-    public static void main(String[] args) throws IOException {
-        String portStr = System.getenv("PORT");
-        int port = (portStr != null) ? Integer.parseInt(portStr) : 8080;
-        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+    public static void main(String[] args) {
+        try {
+            String portStr = System.getenv("PORT");
+            int port = 8080;
+            if (portStr != null && !portStr.isEmpty()) {
+                port = Integer.parseInt(portStr);
+            }
 
-        // Context for the HTML Frontend
-        server.createContext("/", new HtmlHandler());
+            System.out.println("Attempting to start server on port: " + port);
 
-        // Context for the JSON API
-        server.createContext("/weather", new WeatherHandler());
+            // Explicitly bind to 0.0.0.0 to ensure external access
+            HttpServer server = HttpServer.create(new InetSocketAddress("0.0.0.0", port), 0);
 
-        server.setExecutor(null); // creates a default executor
-        System.out.println("Server started on port " + port);
-        server.start();
+            // Context for the HTML Frontend
+            server.createContext("/", new HtmlHandler());
+
+            // Context for the JSON API
+            server.createContext("/weather", new WeatherHandler());
+
+            server.setExecutor(null); // creates a default executor
+            server.start();
+            System.out.println("Server successfully started on port " + port);
+        } catch (Exception e) {
+            System.err.println("Server failed to start!");
+            e.printStackTrace();
+        }
     }
 
     // Serves the full HTML page
