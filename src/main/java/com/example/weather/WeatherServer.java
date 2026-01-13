@@ -18,7 +18,8 @@ public class WeatherServer {
     private static final String API_KEY = "069a0eb757c030eccb5e9fe27fa8b8fd";
 
     public static void main(String[] args) throws IOException {
-        int port = 8080;
+        String portStr = System.getenv("PORT");
+        int port = (portStr != null) ? Integer.parseInt(portStr) : 8080;
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
         // Context for the HTML Frontend
