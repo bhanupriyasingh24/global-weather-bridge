@@ -61,8 +61,30 @@ public class WeatherServer {
                     "<head>\n" +
                     "    <title>Global Weather Bridge</title>\n" +
                     "    <style>\n" +
-                    "        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }\n" +
-                    "        .container { max-width: 400px; margin: 50px auto; text-align: center; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }\n"
+                    "        body { \n" +
+                    "            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; \n" +
+                    "            padding: 20px; \n" +
+                    "            background-color: #f4f4f9; \n" +
+                    "            background-size: cover;\n" +
+                    "            background-position: center;\n" +
+                    "            background-attachment: fixed;\n" +
+                    "            transition: background-image 1s ease-in-out;\n" +
+                    "            min-height: 100vh;\n" +
+                    "            display: flex;\n" +
+                    "            align-items: center;\n" +
+                    "            justify-content: center;\n" +
+                    "            margin: 0;\n" +
+                    "        }\n" +
+                    "        .container { \n" +
+                    "            width: 100%;\n" +
+                    "            max-width: 400px; \n" +
+                    "            text-align: center; \n" +
+                    "            background: rgba(255, 255, 255, 0.85); \n" +
+                    "            backdrop-filter: blur(10px); \n" +
+                    "            padding: 30px; \n" +
+                    "            border-radius: 15px; \n" +
+                    "            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); \n" +
+                    "        }\n"
                     +
                     "        input, select { padding: 12px; width: 70%; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; }\n"
                     +
@@ -124,6 +146,11 @@ public class WeatherServer {
                     "            }\n" +
                     "\n" +
                     "            resultElement.innerText = \"Loading...\";\n" +
+                    "\n" +
+                    "            // Update background image dynamicall\n" +
+                    "            const encodedCity = encodeURIComponent(city);\n" +
+                    "            document.body.style.backgroundImage = `url('https://image.pollinations.ai/prompt/scenic%20photorealistic%20view%20of%20${encodedCity}%20city%20landmark%20daytime%204k?nologo=true')`;\n"
+                    +
                     "\n" +
                     "            // Use relative path for cloud compatibility\n" +
                     "            fetch(`/weather?city=${city}`)\n" +
