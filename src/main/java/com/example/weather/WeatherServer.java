@@ -64,7 +64,7 @@ public class WeatherServer {
                     "        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }\n" +
                     "        .container { max-width: 400px; margin: 50px auto; text-align: center; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }\n"
                     +
-                    "        input { padding: 12px; width: 70%; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; }\n"
+                    "        input, select { padding: 12px; width: 70%; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; }\n"
                     +
                     "        button { padding: 12px 25px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; transition: background 0.3s; }\n"
                     +
@@ -80,12 +80,39 @@ public class WeatherServer {
                     "        <input type=\"text\" id=\"cityInput\" placeholder=\"Enter city name (e.g. Bengaluru)\" />\n"
                     +
                     "        <br>\n" +
+                    "        <select id=\"citySelect\" onchange=\"handleCitySelect()\">\n" +
+                    "            <option value=\"\">or select a popular city...</option>\n" +
+                    "            <option value=\"Bengaluru\">Bengaluru</option>\n" +
+                    "            <option value=\"London\">London</option>\n" +
+                    "            <option value=\"New York\">New York</option>\n" +
+                    "            <option value=\"Tokyo\">Tokyo</option>\n" +
+                    "            <option value=\"Paris\">Paris</option>\n" +
+                    "            <option value=\"Berlin\">Berlin</option>\n" +
+                    "            <option value=\"Sydney\">Sydney</option>\n" +
+                    "            <option value=\"Mumbai\">Mumbai</option>\n" +
+                    "            <option value=\"Dubai\">Dubai</option>\n" +
+                    "            <option value=\"Singapore\">Singapore</option>\n" +
+                    "            <option value=\"Moscow\">Moscow</option>\n" +
+                    "            <option value=\"Los Angeles\">Los Angeles</option>\n" +
+                    "            <option value=\"Rio de Janeiro\">Rio de Janeiro</option>\n" +
+                    "        </select>\n"
+                    +
+                    "        <br>\n" +
                     "        <button onclick=\"getWeather()\">Check Weather</button>\n" +
                     "\n" +
                     "        <div id=\"result\"></div>\n" +
                     "    </div>\n" +
                     "\n" +
                     "    <script>\n" +
+                    "        function handleCitySelect() {\n" +
+                    "            const select = document.getElementById(\"citySelect\");\n" +
+                    "            const input = document.getElementById(\"cityInput\");\n" +
+                    "            if (select.value) {\n" +
+                    "                input.value = select.value;\n" +
+                    "                getWeather();\n" +
+                    "            }\n" +
+                    "        }\n" +
+                    "\n" +
                     "        function getWeather() {\n" +
                     "            const city = document.getElementById(\"cityInput\").value;\n" +
                     "            const resultElement = document.getElementById(\"result\");\n" +
