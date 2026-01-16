@@ -134,7 +134,7 @@ public class WeatherServer {
                     "</html>";
 
             byte[] response = htmlResponse.getBytes(StandardCharsets.UTF_8);
-            exchange.getResponseHeaders().add("Content-Type", "text/html");
+            exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
             // Add a shorter timeout for options
             exchange.sendResponseHeaders(200, response.length);
             OutputStream os = exchange.getResponseBody();
@@ -166,7 +166,7 @@ public class WeatherServer {
                 try {
                     String weatherJson = fetchWeather(city);
                     byte[] response = weatherJson.getBytes(StandardCharsets.UTF_8);
-                    exchange.getResponseHeaders().add("Content-Type", "application/json");
+                    exchange.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
                     exchange.sendResponseHeaders(200, response.length);
                     OutputStream os = exchange.getResponseBody();
                     os.write(response);
