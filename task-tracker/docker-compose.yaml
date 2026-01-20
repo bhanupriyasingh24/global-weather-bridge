@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # This is your "Separate Database" - running in its own isolated container
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: tasktracker
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  # This is your Application Server
+  app:
+    build: .
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    environment:
+      # Connects to the 'db' service defined above
+      DB_URL: jdbc:postgresql://db:5432/tasktracker
+      DB_USER: myuser
+      DB_PASS: mypassword
+      PORT: 8080
+    depends_on:
+      - db
+
+volumes:
+  db-data:

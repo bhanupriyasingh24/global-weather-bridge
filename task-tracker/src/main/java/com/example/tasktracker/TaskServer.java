@@ -20,7 +20,9 @@ import java.util.List;
 
 public class TaskServer {
 
-    private static final String DB_URL = "jdbc:sqlite:task_database.db";
+    // Default to a local postgres URL for testing if not set, but intent is Cloud
+    // SQL
+    private static final String DEFAULT_DB_URL = "jdbc:postgresql://localhost:5432/tasktracker";
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static void main(String[] args) {
@@ -59,15 +61,41 @@ public class TaskServer {
     }
 
     private static void initDatabase() throws SQLException {
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-                Statement stmt = conn.createStatement()) {
-            String sql = "CREATE TABLE IF NOT EXISTS tasks (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "description TEXT NOT NULL," +
-                    "created_at DATETIME DEFAULT CURRENT_TIMESTAMP" +
-                    ")";
-            stmt.execute(sql);
-            System.out.println("Database initialized.");
+        String dbUrl = System.getenv("DB_URL");
+        if (dbUrl == null || dbUrl.isEmpty()) {
+            dbUrl = DEFAULT_DB_URL;
+        }
+        String dbUser = System.getenv("DB_USER");
+        String dbPass = System.getenv("DB_PASS");
+
+        int maxRetries = 10;
+        int count = 0;
+
+        while (true) {
+            try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
+                    Statement stmt = conn.createStatement()) {
+                String sql = "CREATE TABLE IF NOT EXISTS tasks (" +
+                        "id SERIAL PRIMARY KEY," +
+                        "description TEXT NOT NULL," +
+                        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
+                        ")";
+                stmt.execute(sql);
+                System.out.println("Database initialized successfully.");
+                break;
+            } catch (SQLException e) {
+                count++;
+                if (count >= maxRetries) {
+                    throw e;
+                }
+                System.out
+                        .println("Database not ready yet, retrying in 3 seconds... (" + count + "/" + maxRetries + ")");
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new SQLException("Interrupted while waiting for database", ie);
+                }
+            }
         }
     }
 
@@ -298,7 +326,14 @@ public class TaskServer {
     // Database Actions
     private static List<Task> getAllTasks() throws SQLException {
         List<Task> tasks = new ArrayList<>();
-        try (Connection conn = DriverManager.getConnection(DB_URL);
+        String dbUrl = System.getenv("DB_URL");
+        if (dbUrl == null || dbUrl.isEmpty()) {
+            dbUrl = DEFAULT_DB_URL;
+        }
+        String dbUser = System.getenv("DB_USER");
+        String dbPass = System.getenv("DB_PASS");
+
+        try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery("SELECT * FROM tasks ORDER BY created_at DESC")) {
             while (rs.next()) {
@@ -313,7 +348,14 @@ public class TaskServer {
 
     private static void insertTask(String description) throws SQLException {
         String sql = "INSERT INTO tasks(description) VALUES(?)";
-        try (Connection conn = DriverManager.getConnection(DB_URL);
+        String dbUrl = System.getenv("DB_URL");
+        if (dbUrl == null || dbUrl.isEmpty()) {
+            dbUrl = DEFAULT_DB_URL;
+        }
+        String dbUser = System.getenv("DB_USER");
+        String dbPass = System.getenv("DB_PASS");
+
+        try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, description);
             pstmt.executeUpdate();
