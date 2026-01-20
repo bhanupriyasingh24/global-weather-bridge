@@ -206,6 +206,21 @@ public class TaskServer {
                     "            font-style: italic;\n" +
                     "            margin-top: 20px;\n" +
                     "        }\n" +
+                    "        .delete-btn {\n" +
+                    "            background: transparent;\n" +
+                    "            color: #ef4444;\n" +
+                    "            border: 1px solid #ef4444;\n" +
+                    "            padding: 5px 12px;\n" +
+                    "            border-radius: 6px;\n" +
+                    "            cursor: pointer;\n" +
+                    "            font-size: 0.85em;\n" +
+                    "            transition: all 0.2s;\n" +
+                    "            margin-left: 10px;\n" +
+                    "        }\n" +
+                    "        .delete-btn:hover {\n" +
+                    "            background: #ef4444;\n" +
+                    "            color: white;\n" +
+                    "        }\n" +
                     "    </style>\n" +
                     "</head>\n" +
                     "<body>\n" +
@@ -233,7 +248,17 @@ public class TaskServer {
                     "                emptyState.style.display = 'none';\n" +
                     "                tasks.forEach(task => {\n" +
                     "                    const li = document.createElement('li');\n" +
-                    "                    li.textContent = task.description;\n" +
+                    "                    \n" +
+                    "                    const span = document.createElement('span');\n" +
+                    "                    span.textContent = task.description;\n" +
+                    "                    \n" +
+                    "                    const btn = document.createElement('button');\n" +
+                    "                    btn.className = 'delete-btn';\n" +
+                    "                    btn.textContent = 'Delete';\n" +
+                    "                    btn.onclick = () => deleteTask(task.id);\n" +
+                    "                    \n" +
+                    "                    li.appendChild(span);\n" +
+                    "                    li.appendChild(btn);\n" +
                     "                    taskList.appendChild(li);\n" +
                     "                });\n" +
                     "            }\n" +
