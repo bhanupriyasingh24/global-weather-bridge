@@ -266,6 +266,18 @@ public class TaskServer {
                     "            });\n" +
                     "        }\n" +
                     "\n" +
+                    "        function deleteTask(id) {\n" +
+                    "            if (!confirm('Are you sure you want to delete this task?')) return;\n" +
+                    "            fetch('/tasks?id=' + id, { method: 'DELETE' })\n" +
+                    "                .then(res => {\n" +
+                    "                    if (res.ok) {\n" +
+                    "                        fetchTasks();\n" +
+                    "                    } else {\n" +
+                    "                        alert('Failed to delete task');\n" +
+                    "                    }\n" +
+                    "                });\n" +
+                    "        }\n" +
+                    "\n" +
                     "        // Initial Load\n" +
                     "        fetchTasks();\n" +
                     "    </script>\n" +
@@ -307,7 +319,23 @@ public class TaskServer {
                     insertTask(description.trim());
                     exchange.sendResponseHeaders(201, -1);
                 } catch (SQLException e) {
+                } catch (SQLException e) {
                     sendError(exchange, 500, "Database error");
+                }
+            } else if (exchange.getRequestMethod().equalsIgnoreCase("DELETE")) {
+                String query = exchange.getRequestURI().getQuery();
+                if (query != null && query.contains("id=")) {
+                    try {
+                        int id = Integer.parseInt(query.split("id=")[1].split("&")[0]);
+                        deleteTask(id);
+                        exchange.sendResponseHeaders(200, -1);
+                    } catch (NumberFormatException e) {
+                        sendError(exchange, 400, "Invalid ID format");
+                    } catch (SQLException e) {
+                        sendError(exchange, 500, "Database error: " + e.getMessage());
+                    }
+                } else {
+                    sendError(exchange, 400, "Missing ID");
                 }
             } else {
                 exchange.sendResponseHeaders(405, -1);
@@ -321,6 +349,7 @@ public class TaskServer {
             os.write(response);
             os.close();
         }
+
     }
 
     // Database Actions
@@ -358,6 +387,22 @@ public class TaskServer {
         try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, description);
+            pstmt.executeUpdate();
+        }
+    }
+
+    private static void deleteTask(int id) throws SQLException {
+        String sql = "DELETE FROM tasks WHERE id = ?";
+        String dbUrl = System.getenv("DB_URL");
+        if (dbUrl == null || dbUrl.isEmpty()) {
+            dbUrl = DEFAULT_DB_URL;
+        }
+        String dbUser = System.getenv("DB_USER");
+        String dbPass = System.getenv("DB_PASS");
+
+        try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
             pstmt.executeUpdate();
         }
     }
